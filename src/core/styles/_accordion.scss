@@ -1,0 +1,44 @@
+.accordion-flat {
+	// .accordion-item {
+	// 	border: $accordion-border-width solid $card-border-color;
+	// }
+
+	.accordion-header {
+		// padding: $card-cap-padding-y $card-cap-padding-x;
+		// background-color: $card-cap-bg;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.accordion-button {
+		padding: 15px;
+		background-color: inherit;
+		width: auto;
+
+		&:not(.collapsed),
+		&:focus {
+			box-shadow: none;
+		}
+	}
+
+	// > .card {
+	// 	border-radius: $accordion-border-radius;
+
+	// 	.card-header {
+	// 		&.collapse {
+	// 			border-radius: $accordion-border-radius;
+	// 		}
+	// 	}
+	// }
+}
+
+// .accordion-spacing {
+// 	.accordion-item {
+// 		margin-bottom: calc($accordion-padding-y / 2);
+// 		border-radius: $accordion-border-radius;
+// 	}
+// 	> .card {
+// 		margin-bottom: calc($accordion-padding-y / 2);
+// 	}
+// }
