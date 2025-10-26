@@ -11,9 +11,13 @@ const Sidebar = (): JSX.Element => {
 			urlMenu: '/productos',
 		},
 		{
+			nombre: 'Cliente',
+			urlMenu: '/clientes',
+		},
+		{
 			nombre: 'Pedido',
 			urlMenu: '/pedidos',
-		}
+		},
 	]
 
 	return (

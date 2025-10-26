@@ -1,6 +1,6 @@
 import type RecordState from "../Paginations/RecordState";
 
-export default interface SeccionResponse {
+export default interface ProductoResponse {
 	id: number;
 	descripcion: string;
     precioUnitario: number;

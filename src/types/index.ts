@@ -5,6 +5,8 @@ import type PaginationResponse from './models/Paginations/PaginationResponse';
 import type RecordState from './models/Paginations/RecordState';
 import type ProductoResponse from './models/Productos/ProductoResponse';
 import type ProductoFilter from './models/Productos/ProductoFilter';
+import type ClienteResponse from './models/Clientes/ClienteResponse';
+import type ClienteFilter from './models/Clientes/ClienteFilter';
 
 export type {
     Menu,
@@ -13,5 +15,7 @@ export type {
     PaginationResponse,
     RecordState,
     ProductoResponse,
-    ProductoFilter
+    ProductoFilter,
+    ClienteResponse,
+    ClienteFilter
 }
