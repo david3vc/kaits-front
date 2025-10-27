@@ -4,6 +4,14 @@ import type { PaginationRequest, PaginationResponse, ClienteFilter, ClienteRespo
 import { stringify } from 'qs';
 import { getRecordState } from '../../core/helpers/RecordStateHelper';
 
+export const findAll = async (): Promise<ClienteResponse[]> => {
+	const response: AxiosResponse<ClienteResponse[]> = await axios.get(
+		`${API_BASE_URL}/api/cliente`,
+	);
+
+	return response.data;
+};
+
 export const paginatedSearch = async (
 	paginationRequest: PaginationRequest<ClienteFilter>,
 ): Promise<PaginationResponse<ClienteResponse>> => {

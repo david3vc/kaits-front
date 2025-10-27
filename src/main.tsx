@@ -13,9 +13,13 @@ import './core/styles/app.scss';
 // import { fas } from '@fortawesome/free-solid-svg-icons';
 // import { far } from '@fortawesome/free-regular-svg-icons';
 
+import { registerLocale } from 'react-datepicker';
+import { es } from 'date-fns/locale/es';
+
 import router from './core/router';
 
 // library.add(fas, far);
+registerLocale('es', es);
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root') as HTMLElement).render(

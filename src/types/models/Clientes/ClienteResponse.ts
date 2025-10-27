@@ -2,10 +2,11 @@ import type RecordState from "../Paginations/RecordState";
 
 export default interface ClienteResponse {
     id: number;
-    nombres: string | null;
-    apellidoPaterno: string | null;
-    apellidoMaterno: string | null;
-    dni: string | null;
+    nombreCompleto: string;
+    nombres: string;
+    apellidoPaterno: string;
+    apellidoMaterno: string;
+    dni: string;
     fechaCreacion: Date;
     fechaActualizacion: Date;
     estado: boolean;

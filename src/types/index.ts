@@ -7,6 +7,12 @@ import type ProductoResponse from './models/Productos/ProductoResponse';
 import type ProductoFilter from './models/Productos/ProductoFilter';
 import type ClienteResponse from './models/Clientes/ClienteResponse';
 import type ClienteFilter from './models/Clientes/ClienteFilter';
+import type PedidoResponse from './models/Pedidos/PedidoResponse';
+import type PedidoFilter from './models/Pedidos/PedidoFilter';
+import type PedidoRequest from './models/Pedidos/PedidoRequest';
+import type DetallePedidosRequest from './models/DetallePedidos/DetallePedidosRequest';
+import type DetallePedidosResponse from './models/DetallePedidos/DetallePedidosResponse';
+import type HasId from './models/Generals/HasId';
 
 export type {
     Menu,
@@ -17,5 +23,11 @@ export type {
     ProductoResponse,
     ProductoFilter,
     ClienteResponse,
-    ClienteFilter
+    ClienteFilter,
+    PedidoResponse,
+    PedidoFilter,
+    PedidoRequest,
+    DetallePedidosRequest,
+    DetallePedidosResponse,
+    HasId
 }
