@@ -14,7 +14,7 @@ import { swalAlertConfirm } from "../../../core/helpers/SwalHelper";
 import ModalSelectProducto from "./ModalSelectProducto";
 import { useClienteFindAll } from "../../cliente/hooks";
 import type { Option } from "../../../core/helpers/OptionsMapperHelper";
-import { useDetallePedidoFindAllByIdPedido, usePedidoCreate, usePedidoFindById, usePedidoUpdate } from "../hooks";
+import { useDetallePedidoDeleteById, useDetallePedidoFindAllByIdPedido, usePedidoCreate, usePedidoFindById, usePedidoUpdate } from "../hooks";
 import { useParams } from "react-router-dom";
 import { dateStringToDate } from "../../../core/helpers/DayjsHelper";
 import { toastSuccess } from "../../../core/helpers/ToastHelper";
@@ -111,6 +111,7 @@ const DatosGuardarPedido = (): JSX.Element => {
     // const { data: detallePedidoData, isFetching: isFetchingDetallePedido, isSuccess: isSuccessDetallePedido } = useDetallePedidoFindAllByIdPedido(Number(id ?? 0));
     const { mutateAsync: pedidoCreateAsync, data: dataPedidoCreateBackendGuardado, isPending: isPendingPedidoCreate, } = usePedidoCreate();
     const { mutateAsync: pedidoEditAsync, data: dataPedidoEditBackendGuardado, isPending: isPendingPedidoEdit, } = usePedidoUpdate();
+    const { mutateAsync: deleteByIdAsync } = useDetallePedidoDeleteById();
 
     const clienteSimple = clientesData?.map(item => ({
         value: item.id,
@@ -175,16 +176,16 @@ const DatosGuardarPedido = (): JSX.Element => {
         index: number,
         detalle: DetallePedidosResponse,
     ): Promise<void> => {
-        const pregunta = `¿Confirmar eliminación de profesión?`;
+        console.log(detalle)
+        const pregunta = `¿Confirmar eliminación de producto?`;
         const opcionSeleccionado = await swalAlertConfirm(pregunta);
         if (!opcionSeleccionado.isConfirmed) return;
 
         const detallePedidos = formik.values.detallePedidos ?? [];
         detallePedidos.splice(index, 1);
 
-        // if (detalle.id !== 0) await detalleDeleteAsync(detalle.id);
-        // else void formik.setFieldValue('detallePedidos', detallePedidos);
-        void formik.setFieldValue('detallePedidos', detallePedidos);
+        if (detalle.id !== 0) await deleteByIdAsync(detalle.id);
+        else void formik.setFieldValue('detallePedidos', detallePedidos);
     };
 
     const openModalProducto = (index: number): void => {
@@ -225,7 +226,6 @@ const DatosGuardarPedido = (): JSX.Element => {
     const handleGuardar = async (payload: PedidoRequest): Promise<void> => {
         if (id != null) {
             await pedidoEditAsync({ id: Number(id ?? 0), pedido: payload })
-            // toastSuccess('Curso guardado correctamente');
         } else {
             await pedidoCreateAsync(payload);
         }

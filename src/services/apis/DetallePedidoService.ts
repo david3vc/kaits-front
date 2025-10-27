@@ -9,3 +9,11 @@ export const findAllByIdPedido = async (id: number): Promise<DetallePedidosRespo
 
 	return response.data;
 };
+
+export const deleteById = async (id: number): Promise<DetallePedidosResponse> => {
+	const response: AxiosResponse<DetallePedidosResponse> = await axios.delete(
+		`${API_BASE_URL}/api/detallepedido/${id}`,
+	);
+
+	return response.data;
+};
