@@ -8,6 +8,7 @@ const usePedidoFindById = (id?: number): UseQueryResult<PedidoResponse, Error> =
 		queryKey: [PEDIDO_FIND_BY_ID, id],
 		queryFn: async () => await PedidoService.findById(Number(id)),
 		enabled: !(id == 0 || id == undefined),
+		staleTime: 0,
 		retry: 0,
 		refetchOnWindowFocus: false,
 	});

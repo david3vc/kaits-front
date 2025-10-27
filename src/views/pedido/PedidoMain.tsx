@@ -69,7 +69,7 @@ const PedidoMain = (): JSX.Element => {
             header: () => <span className="d-block text-center text-nowrap">Acciones</span>,
             cell: ({ row }) => (
                 <span className="d-flex align-items-center justify-content-center">
-                    <ButtonCore
+                    {/* <ButtonCore
                         variant={row.original.estado ? 'outline-danger' : 'outline-warning'}
                         text={row.original.estado ? 'Eliminar' : 'Restaurar'}
                         title={row.original.estado ? 'Eliminar' : 'Restaurar'}
@@ -79,7 +79,7 @@ const PedidoMain = (): JSX.Element => {
                     // onClick={() => {
                     //     void removeCurso(row.original);
                     // }}
-                    />{' '}
+                    />{' '} */}
                     <NavLinkCore
                         variant="outline-primary"
                         to={`editar/${row.original.id}`}
@@ -103,7 +103,6 @@ const PedidoMain = (): JSX.Element => {
         }),
         columnHelper.accessor('total', {
             header: 'Total',
-            // cell: info => info.getValue(),
             cell: ({ row }) => (
                 <span>
                     S/. {row.original.total.toFixed(2)}

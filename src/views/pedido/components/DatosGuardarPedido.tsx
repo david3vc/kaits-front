@@ -1,4 +1,4 @@
-import { useEffect, useState, type JSX } from "react";
+import { useEffect, useMemo, useState, type JSX } from "react";
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
@@ -6,9 +6,10 @@ import Form from 'react-bootstrap/Form';
 import Table from 'react-bootstrap/Table';
 import Select from 'react-select';
 import DatePicker from 'react-datepicker';
-import { ButtonCore } from "../../../core/components/general";
+import { ButtonCore, NavLinkCore } from "../../../core/components/general";
 import type { DetallePedidosRequest, DetallePedidosResponse, PedidoRequest, ProductoResponse } from "../../../types";
-import { useFormik } from "formik";
+import { useFormik, type FormikErrors } from "formik";
+import * as Yup from 'yup';
 import { swalAlertConfirm } from "../../../core/helpers/SwalHelper";
 import ModalSelectProducto from "./ModalSelectProducto";
 import { useClienteFindAll } from "../../cliente/hooks";
@@ -16,6 +17,7 @@ import type { Option } from "../../../core/helpers/OptionsMapperHelper";
 import { useDetallePedidoFindAllByIdPedido, usePedidoCreate, usePedidoFindById, usePedidoUpdate } from "../hooks";
 import { useParams } from "react-router-dom";
 import { dateStringToDate } from "../../../core/helpers/DayjsHelper";
+import { toastSuccess } from "../../../core/helpers/ToastHelper";
 
 interface Pedidoformik extends PedidoRequest {
     cliente: Option | null;
@@ -24,20 +26,58 @@ interface Pedidoformik extends PedidoRequest {
 const DatosGuardarPedido = (): JSX.Element => {
     //Attributes
     const params = useParams();
-	const { id } = params;
+    const { id } = params;
 
-    const [initialValues, setInitialValues] = useState<Pedidoformik>({
-        fecha: new Date(),
-        idCliente: 0,
-        total: 0,
-        cliente: null,
-        detallePedidos: [],
-        detallePedidoSaveDtos: []
-    });
+    // const [initialValues, setInitialValues] = useState<Pedidoformik>({
+    //     fecha: new Date(),
+    //     idCliente: 0,
+    //     total: 0,
+    //     cliente: null,
+    //     detallePedidos: [],
+    //     detallePedidoSaveDtos: []
+    // });
+
+    const { data: pedidoFindId, isFetching: isFetchingPedido, isSuccess: isSuccessPedido } = usePedidoFindById(Number(id ?? 0));
+    const { data: detallePedidoData, isFetching: isFetchingDetallePedido, isSuccess: isSuccessDetallePedido } = useDetallePedidoFindAllByIdPedido(Number(id ?? 0));
+
+    const initialValues = useMemo<Pedidoformik>(() => {
+        if (id && pedidoFindId && detallePedidoData) {
+            return {
+                fecha: dateStringToDate(pedidoFindId.fecha),
+                idCliente: pedidoFindId.idCliente,
+                cliente: {
+                    value: pedidoFindId.idCliente,
+                    label: pedidoFindId.cliente.nombreCompleto,
+                },
+                total: pedidoFindId.total,
+                detallePedidos: detallePedidoData,
+                detallePedidoSaveDtos: [],
+            };
+        }
+        // Estado inicial para "nuevo" o mientras carga
+        return {
+            fecha: new Date(),
+            idCliente: 0,
+            cliente: null,
+            total: 0,
+            detallePedidos: [],
+            detallePedidoSaveDtos: [],
+        };
+    }, [id, pedidoFindId, detallePedidoData]);
 
     const formik = useFormik<Pedidoformik>({
         enableReinitialize: true,
         initialValues,
+        validationSchema: Yup.object().shape({
+            cliente: Yup.object().nullable().required('Cliente es requerido.'),
+            fecha: Yup.date().nullable().required('Fecha es requerido'),
+            detallePedidos: Yup.array()
+                .of(
+                    Yup.object().shape({
+                        cantidad: Yup.number().nullable().required('Cantidad es requerido.').moreThan(0, 'Cantidad debe ser mayor que 0.')
+                    })
+                )
+        }),
         onSubmit: async (values) => {
             const detallePedidoSaveMap: DetallePedidosRequest[] = values.detallePedidos.map(
                 item => {
@@ -67,11 +107,11 @@ const DatosGuardarPedido = (): JSX.Element => {
     const [showModalProducto, setShowModalProducto] = useState(false);
     const [indexProducto, setIndexProducto] = useState(-1);
     const { data: clientesData, isFetching: isFetchingClientes } = useClienteFindAll();
-    const { data: pedidoFindId, isFetching: isFetchingPedido, isSuccess: isSuccessPedido } = usePedidoFindById(Number(id ?? 0));
-    const { data: detallePedidoData, isFetching: isFetchingDetallePedido, isSuccess: isSuccessDetallePedido } = useDetallePedidoFindAllByIdPedido(Number(id ?? 0));
+    // const { data: pedidoFindId, isFetching: isFetchingPedido, isSuccess: isSuccessPedido } = usePedidoFindById(Number(id ?? 0));
+    // const { data: detallePedidoData, isFetching: isFetchingDetallePedido, isSuccess: isSuccessDetallePedido } = useDetallePedidoFindAllByIdPedido(Number(id ?? 0));
     const { mutateAsync: pedidoCreateAsync, data: dataPedidoCreateBackendGuardado, isPending: isPendingPedidoCreate, } = usePedidoCreate();
     const { mutateAsync: pedidoEditAsync, data: dataPedidoEditBackendGuardado, isPending: isPendingPedidoEdit, } = usePedidoUpdate();
-    
+
     const clienteSimple = clientesData?.map(item => ({
         value: item.id,
         label: item.nombreCompleto ?? '',
@@ -81,29 +121,28 @@ const DatosGuardarPedido = (): JSX.Element => {
         void formik.setFieldValue('total', total());
     }, [formik.values.detallePedidos, formik.values.detallePedidos.length]);
 
-    useEffect(() => {
-        if(isSuccessPedido)
-        {
-            console.log(pedidoFindId, detallePedidoData);
+    // useEffect(() => {
+    //     if (isSuccessPedido && isSuccessDetallePedido) {
+    //         console.log(pedidoFindId, detallePedidoData);
 
-            const clienteOption: Option = {
-                value: pedidoFindId.idCliente,
-                label: pedidoFindId.cliente.nombreCompleto
-            }
+    //         const clienteOption: Option = {
+    //             value: pedidoFindId.idCliente,
+    //             label: pedidoFindId.cliente.nombreCompleto
+    //         }
 
-            setInitialValues(prev => {
-				return {
-					...prev,
-                    fecha: dateStringToDate(pedidoFindId.fecha),
-                    idCliente: pedidoFindId.idCliente,
-                    cliente: clienteOption,
-                    detallePedidos: detallePedidoData ?? [],
-                    total: pedidoFindId.total,
-                    detallePedidoSaveDtos: []
-				};
-			});
-        }
-    }, [isSuccessPedido, isSuccessDetallePedido]);
+    //         setInitialValues(prev => {
+    //             return {
+    //                 ...prev,
+    //                 fecha: dateStringToDate(pedidoFindId.fecha),
+    //                 idCliente: pedidoFindId.idCliente,
+    //                 cliente: clienteOption,
+    //                 detallePedidos: detallePedidoData ?? [],
+    //                 total: pedidoFindId.total,
+    //                 detallePedidoSaveDtos: []
+    //             };
+    //         });
+    //     }
+    // }, [isSuccessPedido, isSuccessDetallePedido, id]);
 
     // Methods
     const rowSubtotal = (det: DetallePedidosResponse) =>
@@ -183,10 +222,11 @@ const DatosGuardarPedido = (): JSX.Element => {
         setIndexProducto(-1);
     };
 
-    const handleGuardar = async(payload: PedidoRequest): Promise<void> => {
-        if(id != null) {
-            await pedidoEditAsync({id: Number(id ?? 0), pedido: payload})
-        }else{
+    const handleGuardar = async (payload: PedidoRequest): Promise<void> => {
+        if (id != null) {
+            await pedidoEditAsync({ id: Number(id ?? 0), pedido: payload })
+            // toastSuccess('Curso guardado correctamente');
+        } else {
             await pedidoCreateAsync(payload);
         }
     }
@@ -218,9 +258,9 @@ const DatosGuardarPedido = (): JSX.Element => {
                                         locale="es"
                                         isClearable
                                     />
-                                    {/* {(formik.touched.numeroDocumento ?? false) && formik.errors.numeroDocumento != null && (
-											<small className="text-danger">{formik.errors.numeroDocumento}</small>
-										)} */}
+                                    {(formik.touched.fecha ?? false) && formik.errors.fecha != null && (
+                                        <small className="text-danger">{formik.errors.fecha}</small>
+                                    )}
                                 </Col>
                                 <Col xs={12} sm={6} md={4} xxl={3}>
                                     <Form.Label>Cliente</Form.Label>
@@ -237,9 +277,9 @@ const DatosGuardarPedido = (): JSX.Element => {
                                         menuPlacement="auto"
                                         isClearable
                                     />
-                                    {/* {(formik.touched.nombres ?? false) && formik.errors.nombres != null && (
-											<small className="text-danger">{formik.errors.nombres}</small>
-										)} */}
+                                    {(formik.touched.cliente ?? false) && formik.errors.cliente != null && (
+                                        <small className="text-danger">{formik.errors.cliente}</small>
+                                    )}
                                 </Col>
                             </Row>
                         </Card.Body>
@@ -274,57 +314,63 @@ const DatosGuardarPedido = (): JSX.Element => {
                                 </thead>
                                 <tbody>
                                     {formik.values.detallePedidos.length > 0 &&
-                                        formik.values.detallePedidos.map((item, index) => (
-                                            <tr key={index}>
-                                                <td className="text-center">
-                                                    <ButtonCore
-                                                        variant="outline-danger"
-                                                        className="border-0"
-                                                        text="Eliminar"
-                                                        title="Eliminar"
-                                                        size="sm"
-                                                        onClick={() => {
-                                                            void hanldeRemoveDetallePedido(index, item);
-                                                        }}
-                                                    />
-                                                    <ButtonCore
-                                                        variant="outline-primary"
-                                                        className="border-0"
-                                                        text="Seleccionar"
-                                                        title="Seleccionar"
-                                                        icon="fa-solid fa-hand-pointer"
-                                                        size="sm"
-                                                        onClick={() => {
-                                                            openModalProducto(index);
-                                                        }}
-                                                    />
-                                                </td>
-                                                <td>
-                                                    <span>{item.producto?.descripcion ?? ''}</span>
-                                                </td>
-                                                <td>
-                                                    <Form.Control
-                                                        type="number"
-                                                        name={`detallePedidos[${index}].cantidad`}
-                                                        value={item.cantidad ?? 0}
-                                                        onChange={e => {
-                                                            formik.handleChange(e);
-                                                            const cantidad = Number(e.target.value) || 0;
-                                                            const precioUnitario = item.producto?.precioUnitario ?? 0;
-                                                            const subtotal = cantidad * precioUnitario;
-                                                            void formik.setFieldValue(`detallePedidos[${index}].subtotal`, subtotal);
-                                                        }}
-                                                        size="lg"
-                                                    />
-                                                </td>
-                                                <td className="text-nowrap text-end">
-                                                    <span>S/. {item.producto?.precioUnitario ?? ''}</span>
-                                                </td>
-                                                <td className="text-nowrap text-end">
-                                                    <span>S/. {rowSubtotal(item).toFixed(2)}</span>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        formik.values.detallePedidos.map((item, index) => {
+                                            const detallePedidosErrors = formik.errors.detallePedidos as Array<FormikErrors<DetallePedidosResponse>> ?? [];
+                                            return (
+                                                <tr key={index}>
+                                                    <td className="text-center">
+                                                        <ButtonCore
+                                                            variant="outline-danger"
+                                                            className="border-0"
+                                                            text="Eliminar"
+                                                            title="Eliminar"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                void hanldeRemoveDetallePedido(index, item);
+                                                            }}
+                                                        />
+                                                        <ButtonCore
+                                                            variant="outline-primary"
+                                                            className="border-0"
+                                                            text="Seleccionar"
+                                                            title="Seleccionar"
+                                                            icon="fa-solid fa-hand-pointer"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                openModalProducto(index);
+                                                            }}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <span>{item.producto?.descripcion ?? ''}</span>
+                                                    </td>
+                                                    <td>
+                                                        <Form.Control
+                                                            type="number"
+                                                            name={`detallePedidos[${index}].cantidad`}
+                                                            value={item.cantidad ?? 0}
+                                                            onChange={e => {
+                                                                formik.handleChange(e);
+                                                                const cantidad = Number(e.target.value) || 0;
+                                                                const precioUnitario = item.producto?.precioUnitario ?? 0;
+                                                                const subtotal = cantidad * precioUnitario;
+                                                                void formik.setFieldValue(`detallePedidos[${index}].subtotal`, subtotal);
+                                                            }}
+                                                            size="lg"
+                                                        />
+                                                        {formik.touched.detallePedidos != null && detallePedidosErrors[index]?.cantidad != null && (
+																<small className="text-danger">{detallePedidosErrors[index]?.cantidad}</small>
+															)}
+                                                    </td>
+                                                    <td className="text-nowrap text-end">
+                                                        <span>S/. {item.producto?.precioUnitario ?? '0.00'}</span>
+                                                    </td>
+                                                    <td className="text-nowrap text-end">
+                                                        <span>S/. {rowSubtotal(item).toFixed(2)}</span>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })}
                                     <tr>
                                         <td className="text-nowrap text-center" colSpan={4}>
                                             <span className="fw-bold">Total</span>
@@ -336,15 +382,15 @@ const DatosGuardarPedido = (): JSX.Element => {
                         </Card.Body>
 
                         <Card.Footer className="d-flex justify-content-between align-items-center bg-transparent fs-3 fw-bold">
-                            <ButtonCore
+                            <NavLinkCore
                                 variant=""
-                                className="btn btn-sm btn-light"
+                                to={`/pedidos`}
                                 text="Cancelar"
                                 title="Cancelar"
                                 size="sm"
-                            // onClick={() => {
-                            // 	void formik.handleSubmit();
-                            // }}
+                                // icon="fa-solid fa-pen-to-square"
+                                className="btn btn-sm btn-light"
+
                             />
 
                             <ButtonCore
@@ -352,6 +398,8 @@ const DatosGuardarPedido = (): JSX.Element => {
                                 className="btn btn-sm btn-dark"
                                 text="Guardar"
                                 title="Guardar"
+                                textLoading="Guardando"
+                                isLoading={id != null ? isPendingPedidoEdit : isPendingPedidoCreate}
                                 size="sm"
                                 onClick={() => {
                                     void formik.handleSubmit();

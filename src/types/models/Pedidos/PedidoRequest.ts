@@ -1,7 +1,7 @@
 import type { DetallePedidosRequest, DetallePedidosResponse } from "../..";
 
 export default interface PedidoRequest {
-	fecha: Date;
+	fecha: Date | null;
 	idCliente: number;
 	total: number;
     detallePedidos: DetallePedidosResponse[];
