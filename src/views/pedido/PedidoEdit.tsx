@@ -1,8 +1,14 @@
 import type { JSX } from "react";
+import { BreadcrumbGuardarPedido, DatosGuardarPedido } from "./components";
 
 const PedidoEdit = (): JSX.Element => {
-    return(
-        <>Pedido Edit</>
+    return (
+        <>
+            <BreadcrumbGuardarPedido
+                titulo="Editar"
+            />
+            <DatosGuardarPedido />
+        </>
     )
 }
 

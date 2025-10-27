@@ -13,7 +13,9 @@ import { swalAlertConfirm } from "../../../core/helpers/SwalHelper";
 import ModalSelectProducto from "./ModalSelectProducto";
 import { useClienteFindAll } from "../../cliente/hooks";
 import type { Option } from "../../../core/helpers/OptionsMapperHelper";
-import { usePedidoCreate } from "../hooks";
+import { useDetallePedidoFindAllByIdPedido, usePedidoCreate, usePedidoFindById, usePedidoUpdate } from "../hooks";
+import { useParams } from "react-router-dom";
+import { dateStringToDate } from "../../../core/helpers/DayjsHelper";
 
 interface Pedidoformik extends PedidoRequest {
     cliente: Option | null;
@@ -21,6 +23,9 @@ interface Pedidoformik extends PedidoRequest {
 
 const DatosGuardarPedido = (): JSX.Element => {
     //Attributes
+    const params = useParams();
+	const { id } = params;
+
     const [initialValues, setInitialValues] = useState<Pedidoformik>({
         fecha: new Date(),
         idCliente: 0,
@@ -54,7 +59,8 @@ const DatosGuardarPedido = (): JSX.Element => {
             }
 
             console.log(payload);
-            await pedidoCreateAsync(payload);
+            await handleGuardar(payload);
+            // await pedidoCreateAsync(payload);
         }
     });
 
@@ -62,7 +68,10 @@ const DatosGuardarPedido = (): JSX.Element => {
     const [showModalProducto, setShowModalProducto] = useState(false);
     const [indexProducto, setIndexProducto] = useState(-1);
     const { data: clientesData, isFetching: isFetchingClientes } = useClienteFindAll();
+    const { data: pedidoFindId, isFetching: isFetchingPedido, isSuccess: isSuccessPedido } = usePedidoFindById(Number(id ?? 0));
+    const { data: detallePedidoData, isFetching: isFetchingDetallePedido, isSuccess: isSuccessDetallePedido } = useDetallePedidoFindAllByIdPedido(Number(id ?? 0));
     const { mutateAsync: pedidoCreateAsync, data: dataPedidoCreateBackendGuardado, isPending: isPendingPedidoCreate, } = usePedidoCreate();
+    const { mutateAsync: pedidoEditAsync, data: dataPedidoEditBackendGuardado, isPending: isPendingPedidoEdit, } = usePedidoUpdate();
     const clienteSimple = clientesData?.map(item => ({
         value: item.id,
         label: item.nombreCompleto ?? '',
@@ -71,6 +80,30 @@ const DatosGuardarPedido = (): JSX.Element => {
     useEffect(() => {
         void formik.setFieldValue('total', total());
     }, [formik.values.detallePedidos, formik.values.detallePedidos.length]);
+
+    useEffect(() => {
+        if(isSuccessPedido)
+        {
+            console.log(pedidoFindId, detallePedidoData);
+
+            const clienteOption: Option = {
+                value: pedidoFindId.idCliente,
+                label: pedidoFindId.cliente.nombreCompleto
+            }
+
+            setInitialValues(prev => {
+				return {
+					...prev,
+                    fecha: dateStringToDate(pedidoFindId.fecha),
+                    idCliente: pedidoFindId.idCliente,
+                    cliente: clienteOption,
+                    detallePedidos: detallePedidoData ?? [],
+                    total: pedidoFindId.total,
+                    detallePedidoSaveDtos: []
+				};
+			});
+        }
+    }, [isSuccessPedido, isSuccessDetallePedido]);
 
     // Methods
     const rowSubtotal = (det: DetallePedidosResponse) =>
@@ -149,6 +182,14 @@ const DatosGuardarPedido = (): JSX.Element => {
         }
         setIndexProducto(-1);
     };
+
+    const handleGuardar = async(payload: PedidoRequest): Promise<void> => {
+        if(id != null) {
+            await pedidoEditAsync({id: Number(id ?? 0), pedido: payload})
+        }else{
+            await pedidoCreateAsync(payload);
+        }
+    }
 
     return (
         <>

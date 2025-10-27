@@ -1,4 +1,5 @@
 import type ClienteResponse from "../Clientes/ClienteResponse";
+import type DetallePedidosResponse from "../DetallePedidos/DetallePedidosResponse";
 import type RecordState from "../Paginations/RecordState";
 
 export default interface PedidoResponse {
@@ -11,4 +12,5 @@ export default interface PedidoResponse {
 	estado: boolean;
 	recordState: RecordState;
 	cliente: ClienteResponse;
+	detallePedido: DetallePedidosResponse[]
 }

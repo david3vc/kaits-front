@@ -58,6 +58,35 @@ const PedidoMain = (): JSX.Element => {
     const columnHelper = createColumnHelper<PedidoResponse>();
 
     const columns = [
+        columnHelper.display({
+            id: 'acciones',
+            header: () => <span className="d-block text-center text-nowrap">Acciones</span>,
+            cell: ({ row }) => (
+                <span className="d-flex align-items-center justify-content-center">
+                    <ButtonCore
+                        variant={row.original.estado ? 'outline-danger' : 'outline-warning'}
+                        text={row.original.estado ? 'Eliminar' : 'Restaurar'}
+                        title={row.original.estado ? 'Eliminar' : 'Restaurar'}
+                        size="sm"
+                        // icon={row.original.state ? 'fa-solid fa-trash' : 'fa-solid fa-rotate-left'}
+                        className="border-0"
+                    // onClick={() => {
+                    //     void removeCurso(row.original);
+                    // }}
+                    />{' '}
+                    <NavLinkCore
+                        variant="outline-primary"
+                        to={`editar/${row.original.id}`}
+                        text="Editar"
+                        title="Editar"
+                        size="md"
+                        // icon="fa-solid fa-pen-to-square"
+                        className="border-0"
+
+                    />
+                </span>
+            ),
+        }),
         columnHelper.accessor('fecha', {
             header: 'Fecha',
             cell: info => info.getValue(),

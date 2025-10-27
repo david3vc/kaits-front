@@ -45,3 +45,18 @@ export const create = async (pedido: PedidoRequest): Promise<PedidoResponse> => 
 
 	return response.data;
 };
+
+export const update = async (id: number, curso: PedidoRequest): Promise<PedidoResponse> => {
+	const response: AxiosResponse<PedidoResponse> = await axios.put(
+		`${API_BASE_URL}/api/pedido/${id}`,
+		curso,
+	);
+
+	return response.data;
+};
+
+export const findById = async (id: number): Promise<PedidoResponse> => {
+	const response: AxiosResponse<PedidoResponse> = await axios.get(`${API_BASE_URL}/api/pedido/${id}`);
+
+	return response.data;
+};
