@@ -1,9 +1,7 @@
 import { useState, type JSX } from "react";
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 import Card from 'react-bootstrap/Card';
 import { useProductoPaginatedSearch } from "../../producto/hooks";
-import { BadgeCore, BreadcrumbCore, ModalCore } from "../../../core/components/general";
+import { BadgeCore, ModalCore } from "../../../core/components/general";
 import type { FilterPage, PaginationRequest, ProductoFilter, ProductoResponse } from "../../../types";
 import { createColumnHelper } from "@tanstack/react-table";
 import { LoadingTable } from "../../../core/components/loading";
@@ -40,7 +38,6 @@ const ModalSelectProducto = ({
         }),
         columnHelper.accessor('precioUnitario', {
             header: 'Precio',
-            // cell: info => info.getValue(),
             cell: ({ row }) => (
                 <>
                     S/. {row.original.precioUnitario}
@@ -70,7 +67,6 @@ const ModalSelectProducto = ({
     };
 
     const goToPage = (payload: FilterPage): void => {
-        console.log('payload', payload);
         setSearchFilter({
             ...searchFilter,
             page: payload.page,
@@ -79,7 +75,6 @@ const ModalSelectProducto = ({
     };
 
     const onRowSelection = (rows: ProductoResponse[]): void => {
-        console.log('rows', rows);
         handleAdd(rows);
         closeModal();
     };

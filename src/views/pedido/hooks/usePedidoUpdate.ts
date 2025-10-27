@@ -22,7 +22,6 @@ const usePedidoUpdate = (): UseMutationResult<
 			await PedidoService.update(payload.id, payload.pedido),
 		onSuccess: () => {
 			void queryClient.invalidateQueries({ queryKey: [PEDIDO_PAGINATED_SEARCH] });
-			console.log('Pedido guardada correctamente')
 			toastSuccess('Pedido guardada correctamente');
 			navigate('/pedidos');
 		},

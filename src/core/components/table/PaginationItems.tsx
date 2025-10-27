@@ -32,7 +32,6 @@ const PaginationItems = <T,>({
 
 	// Hooks
 	useEffect(() => {
-		// console.log('PaginationItems:useEffect');
 
 		let content: JSX.Element;
 		if (isPosibleShowAll) {

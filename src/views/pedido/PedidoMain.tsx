@@ -22,7 +22,6 @@ interface PedidoFilterFormik extends PedidoFilter {
 }
 
 const PedidoMain = (): JSX.Element => {
-
     //Attributes
     const [searchFilter, setSearchFilter] = useState<PaginationRequest<PedidoFilter>>({
         page: 1,
@@ -45,7 +44,6 @@ const PedidoMain = (): JSX.Element => {
             recordState: null,
         },
         onSubmit: values => {
-            // console.log(values.fecha?.toDateString())
             setSearchFilter(prev => {
                 return {
                     ...prev,
@@ -69,24 +67,12 @@ const PedidoMain = (): JSX.Element => {
             header: () => <span className="d-block text-center text-nowrap">Acciones</span>,
             cell: ({ row }) => (
                 <span className="d-flex align-items-center justify-content-center">
-                    {/* <ButtonCore
-                        variant={row.original.estado ? 'outline-danger' : 'outline-warning'}
-                        text={row.original.estado ? 'Eliminar' : 'Restaurar'}
-                        title={row.original.estado ? 'Eliminar' : 'Restaurar'}
-                        size="sm"
-                        // icon={row.original.state ? 'fa-solid fa-trash' : 'fa-solid fa-rotate-left'}
-                        className="border-0"
-                    // onClick={() => {
-                    //     void removeCurso(row.original);
-                    // }}
-                    />{' '} */}
                     <NavLinkCore
                         variant="outline-primary"
                         to={`editar/${row.original.id}`}
                         text="Editar"
                         title="Editar"
                         size="md"
-                        // icon="fa-solid fa-pen-to-square"
                         className="border-0"
 
                     />
@@ -130,7 +116,6 @@ const PedidoMain = (): JSX.Element => {
 
     //Methods
     const goToPage = (payload: FilterPage): void => {
-        console.log('payload', payload);
         setSearchFilter({
             ...searchFilter,
             page: payload.page,
@@ -153,7 +138,6 @@ const PedidoMain = (): JSX.Element => {
                         variant="primary"
                         text="Nuevo pedido"
                         size="sm"
-                        // icon="fa-solid fa-circle-plus"
                         hiddenText='sm'
                     />
                 </BreadcrumbCore.Actions>
@@ -234,9 +218,6 @@ const PedidoMain = (): JSX.Element => {
                                             value={formik.values.total ?? ''}
                                             onChange={formik.handleChange}
                                         />
-                                        {/* {(formik.touched.descripcion ?? false) && formik.errors.descripcion != null && (
-                                <small className="text-danger">{formik.errors.descripcion}</small>
-                            )} */}
                                     </Col>
                                 </Row>
                             </AccordionCore.Body>

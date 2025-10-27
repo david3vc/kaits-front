@@ -58,7 +58,6 @@ const ClienteMain = (): JSX.Element => {
 
     //Methods
     const goToPage = (payload: FilterPage): void => {
-        console.log('payload', payload);
         setSearchFilter({
             ...searchFilter,
             page: payload.page,

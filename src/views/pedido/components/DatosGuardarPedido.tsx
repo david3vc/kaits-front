@@ -17,7 +17,7 @@ import type { Option } from "../../../core/helpers/OptionsMapperHelper";
 import { useDetallePedidoDeleteById, useDetallePedidoFindAllByIdPedido, usePedidoCreate, usePedidoFindById, usePedidoUpdate } from "../hooks";
 import { useParams } from "react-router-dom";
 import { dateStringToDate } from "../../../core/helpers/DayjsHelper";
-import { toastSuccess } from "../../../core/helpers/ToastHelper";
+import { toastWarning } from "../../../core/helpers/ToastHelper";
 
 interface Pedidoformik extends PedidoRequest {
     cliente: Option | null;
@@ -28,17 +28,8 @@ const DatosGuardarPedido = (): JSX.Element => {
     const params = useParams();
     const { id } = params;
 
-    // const [initialValues, setInitialValues] = useState<Pedidoformik>({
-    //     fecha: new Date(),
-    //     idCliente: 0,
-    //     total: 0,
-    //     cliente: null,
-    //     detallePedidos: [],
-    //     detallePedidoSaveDtos: []
-    // });
-
-    const { data: pedidoFindId, isFetching: isFetchingPedido, isSuccess: isSuccessPedido } = usePedidoFindById(Number(id ?? 0));
-    const { data: detallePedidoData, isFetching: isFetchingDetallePedido, isSuccess: isSuccessDetallePedido } = useDetallePedidoFindAllByIdPedido(Number(id ?? 0));
+    const { data: pedidoFindId } = usePedidoFindById(Number(id ?? 0));
+    const { data: detallePedidoData } = useDetallePedidoFindAllByIdPedido(Number(id ?? 0));
 
     const initialValues = useMemo<Pedidoformik>(() => {
         if (id && pedidoFindId && detallePedidoData) {
@@ -54,7 +45,7 @@ const DatosGuardarPedido = (): JSX.Element => {
                 detallePedidoSaveDtos: [],
             };
         }
-        // Estado inicial para "nuevo" o mientras carga
+        
         return {
             fecha: new Date(),
             idCliente: 0,
@@ -98,7 +89,6 @@ const DatosGuardarPedido = (): JSX.Element => {
                 detallePedidoSaveDtos: detallePedidoSaveMap
             }
 
-            console.log(payload);
             await handleGuardar(payload);
         }
     });
@@ -106,11 +96,9 @@ const DatosGuardarPedido = (): JSX.Element => {
     // Hooks
     const [showModalProducto, setShowModalProducto] = useState(false);
     const [indexProducto, setIndexProducto] = useState(-1);
-    const { data: clientesData, isFetching: isFetchingClientes } = useClienteFindAll();
-    // const { data: pedidoFindId, isFetching: isFetchingPedido, isSuccess: isSuccessPedido } = usePedidoFindById(Number(id ?? 0));
-    // const { data: detallePedidoData, isFetching: isFetchingDetallePedido, isSuccess: isSuccessDetallePedido } = useDetallePedidoFindAllByIdPedido(Number(id ?? 0));
-    const { mutateAsync: pedidoCreateAsync, data: dataPedidoCreateBackendGuardado, isPending: isPendingPedidoCreate, } = usePedidoCreate();
-    const { mutateAsync: pedidoEditAsync, data: dataPedidoEditBackendGuardado, isPending: isPendingPedidoEdit, } = usePedidoUpdate();
+    const { data: clientesData } = useClienteFindAll();
+    const { mutateAsync: pedidoCreateAsync, isPending: isPendingPedidoCreate, } = usePedidoCreate();
+    const { mutateAsync: pedidoEditAsync, isPending: isPendingPedidoEdit, } = usePedidoUpdate();
     const { mutateAsync: deleteByIdAsync } = useDetallePedidoDeleteById();
 
     const clienteSimple = clientesData?.map(item => ({
@@ -121,29 +109,6 @@ const DatosGuardarPedido = (): JSX.Element => {
     useEffect(() => {
         void formik.setFieldValue('total', total());
     }, [formik.values.detallePedidos, formik.values.detallePedidos.length]);
-
-    // useEffect(() => {
-    //     if (isSuccessPedido && isSuccessDetallePedido) {
-    //         console.log(pedidoFindId, detallePedidoData);
-
-    //         const clienteOption: Option = {
-    //             value: pedidoFindId.idCliente,
-    //             label: pedidoFindId.cliente.nombreCompleto
-    //         }
-
-    //         setInitialValues(prev => {
-    //             return {
-    //                 ...prev,
-    //                 fecha: dateStringToDate(pedidoFindId.fecha),
-    //                 idCliente: pedidoFindId.idCliente,
-    //                 cliente: clienteOption,
-    //                 detallePedidos: detallePedidoData ?? [],
-    //                 total: pedidoFindId.total,
-    //                 detallePedidoSaveDtos: []
-    //             };
-    //         });
-    //     }
-    // }, [isSuccessPedido, isSuccessDetallePedido, id]);
 
     // Methods
     const rowSubtotal = (det: DetallePedidosResponse) =>
@@ -176,7 +141,6 @@ const DatosGuardarPedido = (): JSX.Element => {
         index: number,
         detalle: DetallePedidosResponse,
     ): Promise<void> => {
-        console.log(detalle)
         const pregunta = `¿Confirmar eliminación de producto?`;
         const opcionSeleccionado = await swalAlertConfirm(pregunta);
         if (!opcionSeleccionado.isConfirmed) return;
@@ -195,7 +159,6 @@ const DatosGuardarPedido = (): JSX.Element => {
 
     const selectAddProducto = (rows: ProductoResponse[]): void => {
         const [producto] = rows;
-        console.log(producto, rows)
         const detallePedido = formik.values.detallePedidos[indexProducto];
         if (detallePedido.id !== 0) {
             const mismoDetallePedido: DetallePedidosResponse = {
@@ -224,6 +187,11 @@ const DatosGuardarPedido = (): JSX.Element => {
     };
 
     const handleGuardar = async (payload: PedidoRequest): Promise<void> => {
+        if(payload.total == 0){
+            toastWarning('Debe elegir al menos 1 producto.');
+            return;
+        }
+
         if (id != null) {
             await pedidoEditAsync({ id: Number(id ?? 0), pedido: payload })
         } else {
@@ -388,7 +356,6 @@ const DatosGuardarPedido = (): JSX.Element => {
                                 text="Cancelar"
                                 title="Cancelar"
                                 size="sm"
-                                // icon="fa-solid fa-pen-to-square"
                                 className="btn btn-sm btn-light"
 
                             />

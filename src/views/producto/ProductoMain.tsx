@@ -31,7 +31,6 @@ const ProductoMain = (): JSX.Element => {
         }),
         columnHelper.accessor('precioUnitario', {
             header: 'Precio',
-            // cell: info => info.getValue(),
             cell: ({ row }) => (
                 <>
                     S/. {row.original.precioUnitario}
@@ -57,7 +56,6 @@ const ProductoMain = (): JSX.Element => {
 
     //Methods
     const goToPage = (payload: FilterPage): void => {
-        console.log('payload', payload);
         setSearchFilter({
             ...searchFilter,
             page: payload.page,
