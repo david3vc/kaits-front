@@ -12,9 +12,13 @@ import { LoadingTable } from "../../core/components/loading";
 import { TableCorePaginated } from "../../core/components/table";
 import type { FilterPage, PaginationRequest, PedidoFilter, PedidoResponse, RecordState } from "../../types";
 import { AccordionCore } from "../../core/components/accordion";
+import DatePicker from "react-datepicker";
+import { useClienteFindAll } from "../cliente/hooks";
+import type { Option } from "../../core/helpers/OptionsMapperHelper";
 
 interface PedidoFilterFormik extends PedidoFilter {
     recordState: RecordState | null;
+    cliente: Option | null;
 }
 
 const PedidoMain = (): JSX.Element => {
@@ -35,19 +39,21 @@ const PedidoMain = (): JSX.Element => {
         initialValues: {
             fecha: null,
             idCliente: null,
+            cliente: null,
             total: null,
             estado: null,
             recordState: null,
         },
         onSubmit: values => {
+            // console.log(values.fecha?.toDateString())
             setSearchFilter(prev => {
                 return {
                     ...prev,
                     page: 1,
                     filter: {
-                        fecha: values.fecha,
-                        idCliente: values.idCliente,
-                        total: values.total,
+                        fecha: values.fecha ?? null,
+                        idCliente: values.cliente?.value ?? null,
+                        total: values.total ?? null,
                         estado: values.recordState?.value,
                     },
                 };
@@ -116,6 +122,12 @@ const PedidoMain = (): JSX.Element => {
 
     //Hooks
     const { data: pedidosData, isFetching: isFetchingPedidosData } = usePedidoPaginatedSearch(searchFilter);
+    const { data: clientesData } = useClienteFindAll();
+
+    const clienteSimple = clientesData?.map(item => ({
+        value: item.id,
+        label: item.nombreCompleto ?? '',
+    }))
 
     //Methods
     const goToPage = (payload: FilterPage): void => {
@@ -161,7 +173,7 @@ const PedidoMain = (): JSX.Element => {
                                             text="Limpiar"
                                             icon="fa-solid fa-arrows-rotate"
                                             hiddenText="sm"
-                                        // onClick={formik.handleReset}
+                                            onClick={formik.handleReset}
                                         />{' '}
                                         <ButtonCore
                                             variant="primary"
@@ -169,90 +181,64 @@ const PedidoMain = (): JSX.Element => {
                                             text="Buscar"
                                             icon="fa-solid fa-magnifying-glass"
                                             hiddenText="sm"
-                                        // onClick={() => {
-                                        // 	formik.handleSubmit();
-                                        // }}
+                                            onClick={() => {
+                                                formik.handleSubmit();
+                                            }}
                                         />
                                     </div>
                                 </div>
                             </AccordionCore.Header>
                             <AccordionCore.Body>
                                 <Row className="g-3">
-                                    <Col xs={12} sm={6} md={3} xxl={3}>
-                                        <Form.Label>Código</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            size="lg"
-                                            name="codigo"
-                                        // value={formik.values.codigo ?? ''}
-                                        // onChange={formik.handleChange}
+                                    <Col xs={12} sm={6} md={4} xxl={4}>
+                                        <Form.Label>Fecha</Form.Label>
+                                        <DatePicker
+                                            className="form-control form-control-lg"
+                                            dateFormat="dd-MM-yyyy"
+                                            name='fecha'
+                                            selected={formik.values?.fecha ?? null}
+                                            onChange={date => {
+                                                void formik.setFieldValue('fecha', date);
+                                            }}
+                                            peekNextMonth
+                                            showMonthDropdown
+                                            showYearDropdown
+                                            dropdownMode="select"
+                                            locale="es"
+                                            isClearable
                                         />
                                     </Col>
-                                    <Col xs={12} sm={6} md={3} xxl={3}>
-                                        <Form.Label>Curso</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            size="lg"
-                                            name="descripcion"
-                                        // value={formik.values.descripcion ?? ''}
-                                        // onChange={formik.handleChange}
+                                    <Col xs={12} sm={6} md={4} xxl={4}>
+                                        <Form.Label>Cliente</Form.Label>
+                                        <Select
+                                            className="react__select"
+                                            classNamePrefix="rs_react"
+                                            name="cliente"
+                                            value={formik.values.cliente ?? ''}
+                                            options={clienteSimple}
+                                            onChange={(option, target) => {
+                                                void formik.setFieldValue(target?.name ?? '', option);
+                                                // formik.handleSubmit();
+                                            }}
+                                            placeholder="Buscar"
+                                            menuPlacement="auto"
+                                            isSearchable={false}
+                                            isClearable
                                         />
                                     </Col>
-                                    {/* <Col xs={12} sm={6} md={3} xxl={3}>
-									<Form.Label>Tipo Curso</Form.Label>
-									<Select
-										className="react__select"
-										classNamePrefix="rs_react"
-										name="tipoCurso"
-										value={formik.values.tipoCurso ?? ''}
-										options={tipoCursoOptions}
-										onChange={(option, target) => {
-											void formik.setFieldValue(target?.name ?? '', option);
-											formik.handleSubmit();
-										}}
-										placeholder="Buscar"
-										menuPlacement="auto"
-										isSearchable={false}
-										isClearable
-									/>
-								</Col>
-								<Col xs={12} sm={6} md={3} xxl={3}>
-									<Form.Label>Gerencia</Form.Label>
-									<Select
-										className="react__select"
-										classNamePrefix="rs_react"
-										name="tipoGerencia"
-										value={formik.values.tipoGerencia ?? ''}
-										options={RECORD_GERENCIAS}
-										onChange={(option, target) => {
-											void formik.setFieldValue(target?.name ?? '', option);
-											formik.handleSubmit();
-										}}
-										placeholder="Buscar"
-										menuPlacement="auto"
-										isSearchable={false}
-										isClearable
-										isDisabled={gerenciaState}
-									/>
-								</Col>
-								<Col xs={12} sm={6} md={4} xxl={3}>
-										<Form.Label>Estado</Form.Label>
-										<Select
-											className="react__select"
-											classNamePrefix="rs_react"
-											name="recordState"
-											value={formik.values?.recordState}
-											options={RECORD_STATUS}
-											onChange={(option, target) => {
-												void formik.setFieldValue(target?.name ?? '', option);
-												formik.handleSubmit();
-											}}
-											placeholder="Buscar"
-											menuPlacement="auto"
-											isSearchable={false}
-											isClearable
-										/>
-									</Col> */}
+                                    <Col xs={12} sm={6} md={4} xxl={4}>
+                                        <Form.Label>Total</Form.Label>
+                                        <Form.Control
+                                            type="number"
+                                            size="lg"
+                                            name="total"
+                                            value={formik.values.total ?? ''}
+                                            onChange={formik.handleChange}
+                                        />
+                                        {/* {(formik.touched.descripcion ?? false) && formik.errors.descripcion != null && (
+                                <small className="text-danger">{formik.errors.descripcion}</small>
+                            )} */}
+                                    </Col>
                                 </Row>
                             </AccordionCore.Body>
                         </AccordionCore.Item>

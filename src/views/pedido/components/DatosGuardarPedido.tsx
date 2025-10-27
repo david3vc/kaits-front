@@ -60,7 +60,6 @@ const DatosGuardarPedido = (): JSX.Element => {
 
             console.log(payload);
             await handleGuardar(payload);
-            // await pedidoCreateAsync(payload);
         }
     });
 
@@ -72,6 +71,7 @@ const DatosGuardarPedido = (): JSX.Element => {
     const { data: detallePedidoData, isFetching: isFetchingDetallePedido, isSuccess: isSuccessDetallePedido } = useDetallePedidoFindAllByIdPedido(Number(id ?? 0));
     const { mutateAsync: pedidoCreateAsync, data: dataPedidoCreateBackendGuardado, isPending: isPendingPedidoCreate, } = usePedidoCreate();
     const { mutateAsync: pedidoEditAsync, data: dataPedidoEditBackendGuardado, isPending: isPendingPedidoEdit, } = usePedidoUpdate();
+    
     const clienteSimple = clientesData?.map(item => ({
         value: item.id,
         label: item.nombreCompleto ?? '',
